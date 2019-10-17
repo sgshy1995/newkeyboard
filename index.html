@@ -10,15 +10,30 @@
 </head>
 
 <body>
-    <header></header>
+    <header>
+        <div class="topNavbar clearfix">
+            <div class="logo">
+                <img src="./img/logo.jpg">
+            </div>
+            <form class="search">
+                <input type="text" id="shuru">
+                <input type="button" name='baidu' id='baidu' value="Baidu">
+                <input type="button" name="google" id="google" value="Google">
+            </form>
+        </div>
+    </header>
+
     <main>
         <div class="wrapper" id='keyboard'>
 
         </div>
     </main>
+
     <footer></footer>
+    
     <script>
 
+        //初始化数据
         var keys = {
             0: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
             1: ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
@@ -30,51 +45,98 @@
             'q': 'qq.com',
             'w': 'weibo.com',
             'e': 'ele.me',
-            'r': undefined
+            'r': 'renren.com',
+            't': 'twitter.com',
+            'y': 'yahoo.com',
+            'u': 'youtube.com',
+            'v': 'v2net.org',
+            'g': 'github.com',
+            '1': 'www.tencent.com'
         }
         //  取出localstorage中的sgs 对应的hash
-        var hashInLocalStorage = JSON.parse(localStorage.getItem('sgs') || 'null')
-        if(hashInLocalStorage){
+        var hashInLocalStorage = getfromLocalStorage('sgs')
+        if (hashInLocalStorage) {
             hash = hashInLocalStorage
         }
 
-        index = 0
-        while (index < keys.length) {
-            div1 = document.createElement('div')
-            keyboard.appendChild(div1)
-            row = keys[index]
 
-            index1 = 0
-            while (index1 < row.length) {
-                kbd1 = document.createElement('kbd')
-                kbd1.textContent = row[index1]
-                button1 = document.createElement('button')
-                button1.textContent = 'E'
-                button1.id = row[index1]
-                button1.onclick = function (sgs1) {
-                    //button1.target = xxxx    button1是变量  不可以使用  都是最后一个按键
-                    //console.log(sgs1.target)
-                    key = sgs1.target.id    //取到用户点击信息target中的id
-                    input = prompt('Input a new websit please:')
-                    hash[key] = input
-                    localStorage.setItem('sgs', JSON.stringify(hash))
-                    console.log(hash)
-                }
-                kbd1.appendChild(button1)
-                div1.appendChild(kbd1)
-                index1++
+
+        //生成键盘
+
+        for (index = 0; index < keys.length; index++) {
+            var div = tag('div')
+            div.className = 'row'
+
+            keyboard.appendChild(div)
+
+            var row = keys[index]
+            for (index1 = 0; index1 < row.length; index1++) {
+
+                var button = createButton(row[index1])
+
+                var img = createImg(hash[row[index1]])
+
+                var kbd = tag('kbd')
+                kbd.textContent = row[index1]
+
+                kbd.appendChild(img)
+                kbd.appendChild(button)
+
+                div.appendChild(kbd)
             }
 
-            index++
+            //监听键盘
+
+            document.onkeypress = function (sgs1) {
+                var keyx = sgs1.key
+                var website = hash[keyx]
+                //location.href = 'http://' + website
+                window.open('http://' + website, '_blank')
+            }
+
         }
 
 
+        function getfromLocalStorage(name) {
+            return JSON.parse(localStorage.getItem(name) || 'null')
+        }
 
-        document.onkeypress = function (sgs1) {
-            key = sgs1.key
-            website = hash[key]
-            //location.href = 'http://' + website
-            window.open('http://' + website, '_blank')
+        function tag(tagName) {
+            return document.createElement(tagName)
+        }
+
+        function createButton(buttonID) {
+            var button = tag('button')
+            button.textContent = 'E'
+            button.id = buttonID
+            button.onclick = function (sgs1) {
+                //button1.target = xxxx    button1是变量  不可以使用  都是最后一个按键
+                //console.log(sgs1.target)
+                var buttonx = sgs1.target
+                var key = buttonx.id
+                var imgx = buttonx.previousSibling  //获取button标签的哥哥，通关关系可知为img标签
+                imgx.onerror = function (sgs3) {  //因为已确定网址已存在，因此只需监听错误即可
+                    sgs3.target.src = './img/error.jpg'
+                }
+                var input = prompt('Input a new websit please:')
+                hash[key] = input
+                imgx.src = 'http://' + input + '/favicon.ico'  //立即获取ico
+                localStorage.setItem('sgs', JSON.stringify(hash))
+            }
+            return button
+        }
+
+        function createImg(domain) {
+            var img = tag('img')
+            if (domain) {
+                img.src = 'http://' + domain + '/favicon.ico' //hash存在，则获取网站ico
+            } else {
+                img.src = './img/empty.jpg'  //如果hash不存在，则获取已做好的空
+            }
+            img.onerror = function (sgs2) {  //如果hash存在但是ico获取失败，则获取已做好的X
+                sgs2.target.src = './img/error.jpg'
+            }
+            return img
         }
 
 
